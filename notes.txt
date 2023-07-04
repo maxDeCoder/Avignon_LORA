@@ -1,0 +1,44 @@
+- Expected Packet loss of 10%
+
+# Run 1
+
+sent payload = "Test_Message_<delay>_<id>"
+num_packets = 100
+interpacket delay = 10s
+
+# Run 2
+
+sent payload = "Test_Message_<delay>_<id>"
+num_packets = 100
+interpacket delay = 8s
+
+# Run 3
+
+sent payload = "Test_Message_<delay>_<id>"
+num_packets = 100
+interpacket delay = 6s
+
+# Run 4
+
+sent payload = "Test_Message_<delay>_<id>"
+num_packets = 100
+interpacket delay = 4s
+
+# Run 5
+
+sent payload = "Test_Message_<delay>_<id>"
+num_packets = 100
+interpacket delay = 2s
+
+# Run 6
+
+sent payload = "Test_Message_<delay>_<id>"
+num_packets = 100
+interpacket delay = 1s
+
+- As interpacket delay increases, the time to receive later packets increases
+
+- Size of packet
+- Periodicity
+- Why not batch of data
+- scripting tool
