@@ -83,9 +83,9 @@ def generate_delay():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-n", "--num_packets", dest="num_packets", help="number of packets to be sent per update", required=False, default=5)
-    parser.add_argument("-k", "--num_updates", dest="num_updates", help="number of updates to be sent", required=False, default=5)
-    parser.add_argument("-l", "--payload_length", dest="payload_length", help="number of characters to be sent in every payload (-1 for random between 1-256) (max 256)", required=False, default=20)
+    parser.add_argument("-n", "--num_packets", dest="num_packets", help="number of packets to be sent per update", required=False, default=10)
+    parser.add_argument("-k", "--num_updates", dest="num_updates", help="number of updates to be sent", required=False, default=10)
+    parser.add_argument("-l", "--payload_length", dest="payload_length", help="number of characters to be sent in every payload (-1 for random between 1-256) (max 256)", required=False, default=10)
     parser.add_argument("-u", "--update_period", dest="update_period", help="How often the simulator generates new data (minutes) (-1 for poisson random)", required=False, default=1)
     parser.add_argument("-r", "--retries", dest="retries", help="How many times to retry a packet", required=False, default=3)
     parser.add_argument("-P", "--port", dest="port", help="port for connection to mdot", required=True)
@@ -97,13 +97,13 @@ if __name__ == "__main__":
     SERIAL_PORT = args.port
     BAUD_RATE = 115200
 
-    num_packets = 10 #int(args.num_packets)
-    num_updates = 10 #int(args.num_updates)
-    payload_length = [2**n for n in range(9)] #int(args.payload_length)
+    num_packets = int(args.num_packets)
+    num_updates = int(args.num_updates)
+    payload_length = int(args.payload_length)
     retries = 3 #int(args.retries)
-    buffer_size = 5 #int(args.buffer_size)
-    lmb =  1.5 #float(args.lmb)
-    update_period = [60, 45, 30, 15, 10] #float(args.update_period)
+    buffer_size = int(args.buffer_size)
+    datarates = [0,1,2,3,4,5,6,7] #float(args.update_period)
+    update_period = float(args.update_period) * 60
 
     print("num_packets:", num_packets)
     print("num_updates:", num_updates)
@@ -111,6 +111,7 @@ if __name__ == "__main__":
     print("update_period:", update_period)
     print("retries:", retries)
     print("buffer size:", buffer_size)
+    print("datarates:", datarates)
 
     print(f"connecting to mDot via {SERIAL_PORT}, baud rate = {BAUD_RATE}")
     device = serial.Serial(SERIAL_PORT, BAUD_RATE)
@@ -130,20 +131,20 @@ if __name__ == "__main__":
     thread = threading.Thread(target=sender_thread)
     thread.start()
 
-    combinations = list(product(payload_length, update_period))
-
     tx_time = []
-    for pl, up in tqdm.tqdm(combinations):
+    for txdr in tqdm.tqdm(datarates):
+        AT(f"AT+TXDR={txdr}")
+        print("Changed Datarate and Spreading Factor")
         for i in range(num_updates):
             # generate new information in the form of a set of packets and also the log the time at which the 
-            packets, tx = generate_packets(num_packets, pl)
+            packets, tx = generate_packets(num_packets, payload_length)
             # log the time at which the information was generated
             tx_time.append(tx)
 
             # add the packets to the buffer
             enque(packets)
 
-            delay = up
+            delay = update_period
             if i != (num_updates-1):
                 print(f"wait for {delay} secs before next update is generated")
                 time.sleep(delay)
@@ -153,7 +154,7 @@ if __name__ == "__main__":
         while is_sending:
             pass
 
-        AT(f"AT+SEND=SAVE_{pl}_{up}")
+        AT(f"AT+SEND=SAVE_{payload_length}_{txdr}")
     
     exit_flag=True
     device.close()

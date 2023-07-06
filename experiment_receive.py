@@ -49,6 +49,7 @@ def on_message(client, userdata, msg):
     if "SAVE" in payload:
         payload_size, period = payload.split("_")[-2:]
         df.to_csv(f"./data/logs/log_{payload_size}_{period}.csv", index=False)
+        df = pd.DataFrame()
         log+=1
 
 def on_log(client, userdata, level, buf):
