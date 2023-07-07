@@ -15,6 +15,7 @@ random_delay = False
 update_period = 0
 lmb = 2.5
 random_payload_length = False
+sent = 0
 
 def enque(item):
     global buffer, buffer_size
@@ -50,7 +51,7 @@ def generate_packets(n, payload_length):
     return ["SOT", f"TIME={time_of_generation}"] + [generate_payload(payload_length) for _ in range(n)] + ["EOT"], time_of_generation
 
 def sender_thread():
-    global buffer, retries, device, is_sending, exit_flag
+    global buffer, retries, device, is_sending, exit_flag, sent
 
     while not exit_flag:
         if len(buffer) > 0:
@@ -67,6 +68,10 @@ def sender_thread():
                     # if the packet was sent then exit the loop
                     if code == "OK":
                         break
+            
+            sent += 1
+            print("Sent:", sent)
+
         else:
             is_sending=False
 
@@ -102,7 +107,7 @@ if __name__ == "__main__":
     payload_length = int(args.payload_length)
     retries = 3 #int(args.retries)
     buffer_size = int(args.buffer_size)
-    datarates = [0,1,2,3,4,5,6,7] #float(args.update_period)
+    datarates = [5] #float(args.update_period)
     update_period = float(args.update_period) * 60
 
     print("num_packets:", num_packets)
@@ -129,13 +134,16 @@ if __name__ == "__main__":
     print("Starting Sender thread")
     # start sender thread
     thread = threading.Thread(target=sender_thread)
+    thread.daemon=True
     thread.start()
 
     tx_time = []
     for txdr in tqdm.tqdm(datarates):
         AT(f"AT+TXDR={txdr}")
-        print("Changed Datarate and Spreading Factor")
-        for i in range(num_updates):
+        print(f"Changed Datarate and Spreading Factor to {txdr}")
+        sent = 0
+        while sent < num_updates:
+        # for i in range(num_updates):
             # generate new information in the form of a set of packets and also the log the time at which the 
             packets, tx = generate_packets(num_packets, payload_length)
             # log the time at which the information was generated
@@ -145,16 +153,17 @@ if __name__ == "__main__":
             enque(packets)
 
             delay = update_period
-            if i != (num_updates-1):
+            if sent != (num_updates-1):
                 print(f"wait for {delay} secs before next update is generated")
                 time.sleep(delay)
         # time.sleep(10)
+
 
         # the sender is still sending then wait for the thread to finish executing
         while is_sending:
             pass
 
-        AT(f"AT+SEND=SAVE_{payload_length}_{txdr}")
+        AT(f"AT+SEND=SAVE_{txdr}_{txdr}")
     
     exit_flag=True
     device.close()
