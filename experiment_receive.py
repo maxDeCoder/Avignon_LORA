@@ -60,10 +60,11 @@ def receiver():
             receive_time = int(time.time())
             difference = receive_time-send_time
             current_age = difference
+            anchor_time = send_time
+
             df = pd.concat([df, pd.DataFrame({"generation time": send_time, "receive time":receive_time, "difference": difference}, index=[0])])
             if not start_logging:
                 start_logging = True
-                anchor_time = send_time
             return
 
         if "SAVE" in payload:
@@ -96,9 +97,11 @@ if __name__ == "__main__":
 
     while log_count < num_logs:
         if start_logging:
-            current_age += log_after
+            current_time = time.time()
+            current_age += int(current_time - anchor_time)
+            anchor_time = current_time
             AOI_list.append(current_age)
-            print("logging:", log_count)
+            print("logging:", current_age, "sec,", log_count)
             log_count += 1
             time.sleep(log_after)
 

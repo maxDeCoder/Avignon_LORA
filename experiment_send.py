@@ -107,8 +107,9 @@ if __name__ == "__main__":
     payload_length = int(args.payload_length)
     retries = 3 #int(args.retries)
     buffer_size = int(args.buffer_size)
-    datarates = [5] #float(args.update_period)
+    datarates = [0] #float(args.update_period)
     update_period = float(args.update_period) * 60
+    txp = 27
 
     print("num_packets:", num_packets)
     print("num_updates:", num_updates)
@@ -117,6 +118,7 @@ if __name__ == "__main__":
     print("retries:", retries)
     print("buffer size:", buffer_size)
     print("datarates:", datarates)
+    print("Transmission Power:", txp, "dB")
 
     print(f"connecting to mDot via {SERIAL_PORT}, baud rate = {BAUD_RATE}")
     device = serial.Serial(SERIAL_PORT, BAUD_RATE)
@@ -141,6 +143,9 @@ if __name__ == "__main__":
     for txdr in tqdm.tqdm(datarates):
         AT(f"AT+TXDR={txdr}")
         print(f"Changed Datarate and Spreading Factor to {txdr}")
+
+        AT(f"AT+TXP={txp}")
+        print(f"Changed transmission power to {txp} dB")
         sent = 0
         while sent < num_updates:
         # for i in range(num_updates):
