@@ -107,7 +107,7 @@ if __name__ == "__main__":
     payload_length = int(args.payload_length)
     retries = 3 #int(args.retries)
     buffer_size = int(args.buffer_size)
-    datarates = [0] #float(args.update_period)
+    datarates = [5] #float(args.update_period)
     update_period = float(args.update_period) * 60
     txp = 27
 
