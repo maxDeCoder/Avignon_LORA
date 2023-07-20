@@ -206,7 +206,7 @@ if __name__ == "__main__":
     buffer_size = int(args.buffer_size)
     datarates = [5] #float(args.update_period)
     update_period = int(args.update_period)
-    txp = [10,15,20,27]
+    txp = [1, 5]
 
     # print("num_packets:", num_packets)
     # print("num_updates:", num_updates)
